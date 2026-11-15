@@ -189,19 +189,18 @@ textarea:focus,input:focus,select:focus{outline:2px solid var(--teal-d);outline-
 .linkstate.ok{color:var(--teal)} .linkstate.no{color:var(--amber)}
 
 /* disposizione: Segreteria = riproduzione | momenti | orologio; Palco = messaggi | orologio + riproduzione | momenti */
-/* Segreteria: colonna stretta (lettore + playlist) | orologio grande */
-.main{grid-template-columns:290px minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
-.deck{grid-column:1;grid-row:1}
-.momentspanel{grid-column:1;grid-row:2}
-.clockpanel{grid-column:2;grid-row:1 / 3}
-.msgpanel{display:none}
-/* Palco: messaggi | orologio grande | colonna stretta (lettore + playlist) */
-body.palco .main{grid-template-columns:minmax(0,1fr) minmax(0,1.5fr) 250px}
+/* Segreteria: orologio a tutta larghezza; sotto Spotify | momenti */
+.main{grid-template-columns:300px minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}
 .main > .panel{min-width:0}
-body.palco .msgpanel{display:flex;grid-column:1;grid-row:1 / 3}
-body.palco .clockpanel{grid-column:2;grid-row:1 / 3}
-body.palco .deck{grid-column:3;grid-row:1}
-body.palco .momentspanel{grid-column:3;grid-row:2}
+.clockpanel{grid-column:1 / -1;grid-row:1}
+.deck{grid-column:1;grid-row:2}
+.momentspanel{grid-column:2;grid-row:2}
+.msgpanel{display:none}
+/* Palco: messaggi | orologio; sotto Spotify | momenti */
+body.palco .main{grid-template-columns:minmax(300px,.62fr) minmax(0,1fr)}
+body.palco .msgtext{font-size:clamp(20px,2vw,30px)}
+body.palco .msgpanel{display:flex;grid-column:1;grid-row:1}
+body.palco .clockpanel{grid-column:2;grid-row:1}
 body.palco .cuebar, body.palco #btnSpk{display:none}
 body.palco .app{grid-template-rows:auto 1fr auto}
 body.palco .bottom{grid-template-columns:1fr}
@@ -215,14 +214,12 @@ body.palco .bottom{grid-template-columns:1fr}
 .deck .meta .prog{margin-top:5px}
 .deck .tbtn{height:40px;font-size:13px}
 .deck .tbtn svg{width:18px;height:18px}
-/* tasti playlist in colonna, piccoli */
-.momentspanel .moments{grid-template-columns:1fr;gap:6px}
-.momentspanel .pad{flex-direction:row;align-items:center;justify-content:flex-start;gap:8px;padding:6px 10px 6px 14px;border-radius:9px;container-type:normal}
-.momentspanel .pad .k{position:static;order:-1;font-size:13px;min-width:12px}
-.momentspanel .pad .n{font-size:16px;line-height:1.1;max-height:none;padding-right:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
-.momentspanel .pad .s{font-size:11px;max-width:42%;text-align:right}
-.momentspanel .pad .eq{position:static;height:12px}
-.momentspanel .pad.on .s{padding-right:0}
+/* tasti playlist in riga, piccoli */
+.momentspanel .moments{grid-template-columns:repeat(6,minmax(0,1fr));grid-auto-rows:1fr;gap:8px}
+.momentspanel .pad{padding:8px 10px 8px 14px;border-radius:9px;gap:4px;min-height:64px}
+.momentspanel .pad .n{font-size:16px;line-height:1.1;padding-right:12px}
+.momentspanel .pad .s{font-size:11px}
+.momentspanel .pad .k{top:6px;right:8px;font-size:11px}
 .big.spkbig{border:2px solid var(--amber);background:linear-gradient(180deg,#2a2210,#171309);color:var(--amber)}
 /* orologio da studio */
 .studio{flex:1;min-height:0;container-type:size;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4cqh;background:#030404;border:1px solid #1d2326;border-radius:12px}
@@ -232,13 +229,13 @@ body.palco .bottom{grid-template-columns:1fr}
 #clkS{color:var(--teal);text-shadow:0 0 .25em rgba(0,245,208,.35)}
 .secbar{width:88%;height:max(6px,1.6cqh);background:#161b1d;border-radius:99px;overflow:hidden}
 .secbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--teal-d),var(--teal));border-radius:99px}
-.clknext{display:grid;grid-template-columns:1fr auto;align-items:center;gap:0 16px;padding:10px 16px;border-radius:12px;background:#060808;border:1px solid #1d2326}
-.clknext small{font-family:var(--cond);font-weight:600;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
-.clknext b{grid-row:2;font-family:var(--cond);font-weight:600;font-size:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#clkCount{grid-row:1 / 3;grid-column:2;font-family:var(--cond);font-weight:700;font-size:clamp(34px,4vw,56px);line-height:1;color:var(--teal);font-variant-numeric:tabular-nums}
-.clknext.soon{border-color:var(--amber)}
-.clknext.soon #clkCount{color:var(--amber);animation:blink 1s steps(2) infinite}
-.clknext.late #clkCount{color:var(--red)}
+.studio{position:relative}
+.clknext{position:absolute;right:14px;bottom:10px;display:flex;align-items:baseline;gap:8px;font-family:var(--cond);font-size:14px;color:var(--muted);white-space:nowrap;max-width:60%;overflow:hidden}
+.clknext small{font-weight:600;font-size:11px;letter-spacing:.16em;text-transform:uppercase}
+.clknext b{font-weight:600;color:var(--silver);overflow:hidden;text-overflow:ellipsis}
+#clkCount{font-weight:700;font-size:16px;color:var(--teal-d);font-variant-numeric:tabular-nums}
+.clknext.soon #clkCount{color:var(--amber)}
+.clknext.late #clkCount{color:#b5524f}
 .msgcard{flex:1;display:flex;flex-direction:column;gap:12px;background:#060808;border:1px solid #1d2326;border-radius:12px;padding:16px;min-height:0}
 .msgmeta{font-family:var(--cond);font-weight:600;letter-spacing:.14em;text-transform:uppercase;font-size:13px;color:var(--muted)}
 .msgtext{flex:1;font-weight:600;font-size:clamp(22px,2.3vw,34px);line-height:1.3;overflow:auto;user-select:text;min-height:0}
@@ -313,6 +310,7 @@ body.palco .bottom{grid-template-columns:1fr}
   .cuebar{flex-wrap:wrap}
   .main{grid-template-columns:260px 1fr}
   .clockpanel{min-height:340px}
+  .momentspanel .moments{grid-template-columns:repeat(3,minmax(0,1fr))}
   body.palco .main{grid-template-columns:1fr 1fr}
   body.palco .msgpanel{grid-column:1;grid-row:1}
   body.palco .clockpanel{grid-column:2;grid-row:1}
@@ -406,8 +404,8 @@ body.palco .bottom{grid-template-columns:1fr}
       <div class="studio">
         <div class="clkdig"><span id="clkHM">--:--</span><span class="sep">:</span><span id="clkS">--</span></div>
         <div class="secbar" aria-hidden="true"><i id="secBar"></i></div>
+        <div class="clknext" id="clkNext"><small>Prossimo</small><b id="clkNextName">—</b><span id="clkCount"></span></div>
       </div>
-      <div class="clknext" id="clkNext"><small>Prossimo evento</small><b id="clkNextName">—</b><span id="clkCount">--:--</span></div>
     </section>
   </div>
 
