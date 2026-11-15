@@ -8,6 +8,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 <title>Consolle Palco</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -275,6 +276,11 @@ body.palco .bottom{grid-template-columns:1fr}
 .setupbox{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border:1px solid var(--amber);border-radius:10px;background:rgba(255,176,32,.06)}
 .setupbox b{font-family:var(--cond);font-size:17px;letter-spacing:.04em;color:var(--amber)}
 .setupbox .btn{align-self:flex-start}
+.qrbox{display:grid;grid-template-columns:196px minmax(0,1fr);gap:16px;align-items:start}
+#spkQR{width:196px;height:196px;padding:8px;background:#fff;border-radius:8px;display:grid;place-items:center;color:#333;font-size:12px}
+#spkQR img,#spkQR canvas{width:180px !important;height:180px !important}
+.qrside{display:flex;flex-direction:column;gap:6px;min-width:0}
+@media (max-width:640px){ .qrbox{grid-template-columns:1fr} }
 .outlist{display:flex;flex-direction:column;gap:6px}
 .outlist div{display:grid;grid-template-columns:48px 70px 1fr 110px;gap:8px;align-items:center;font-size:13px;padding:6px 8px;border-radius:6px;background:#0d0f10}
 .outlist .k{font-family:var(--cond);color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-size:11px}
@@ -345,7 +351,7 @@ body.palco .bottom{grid-template-columns:1fr}
 <body>
 <div class="app" id="app">
   <header>
-    <div class="brand"><small>SENATORS ENDURO CUP</small><b>CONSOLLE <span id="roleName">PALCO</span></b></div>
+    <div class="brand"><small id="brandSub">SENATORS ENDURO CUP</small><b>CONSOLLE <span id="roleName">PALCO</span></b></div>
     <div class="chip" id="chip">Simulazione · Spotify non collegato</div>
     <div class="sign" id="sign"><i></i><span id="signTxt">PRONTO</span></div>
     <div class="status">
@@ -434,13 +440,20 @@ body.palco .bottom{grid-template-columns:1fr}
     <div class="body">
       <div class="setupbox" id="spkSetup" hidden>
         <b>Collegamento con il palco non ancora creato.</b>
-        <p class="note">Premi il pulsante: questo PC diventa la Segreteria e viene creato un codice segreto. Poi apri sul tablet il link che compare qui sotto.</p>
-        <button class="btn pri" id="spkSetupBtn" type="button">Crea il collegamento</button>
+        <p class="note">Scrivi il nome della tappa e premi il pulsante: questo PC diventa la Segreteria e viene creato un codice segreto solo per questa tappa.</p>
+        <span class="inline"><input id="spkTappa" maxlength="60" placeholder="Nome tappa, es. Tappa 3 · Imola"><button class="btn pri" id="spkSetupBtn" type="button">Crea il collegamento</button></span>
       </div>
       <div class="setupbox" id="spkLinkBox" hidden>
-        <b>Link da aprire sul tablet del palco</b>
-        <span class="inline"><input id="spkLinkVal" readonly><button class="btn" id="spkLinkCopy" type="button">Copia</button></span>
-        <p class="note">Mandalo solo a te stesso (es. WhatsApp o email), aprilo in Chrome sul tablet e aggiungilo alla schermata Home: quella sarà la consolle Palco.</p>
+        <b>Tablet del palco · <span id="spkTappaNow"></span></b>
+        <div class="qrbox">
+          <div id="spkQR" title="Inquadra con la fotocamera del tablet"></div>
+          <div class="qrside">
+            <p class="note">Sul tablet apri la <b>fotocamera</b> e inquadra il QR: si apre la consolle Palco di questa tappa (poi «Aggiungi a schermata Home»). In alternativa copia il link e mandalo solo a te stesso.</p>
+            <span class="inline"><input id="spkLinkVal" readonly><button class="btn" id="spkLinkCopy" type="button">Copia</button></span>
+            <p class="note" style="margin-top:6px"><b style="font-size:13px;color:var(--silver)">Nuova tappa:</b> crea un codice nuovo. Il tablet collegato alla tappa precedente smette di ricevere i messaggi finché non inquadra il nuovo QR.</p>
+            <span class="inline"><input id="spkNewTappa" maxlength="60" placeholder="Nome nuova tappa"><button class="btn" id="spkNewBtn" type="button">Nuovo codice</button></span>
+          </div>
+        </div>
       </div>
       <p class="note">Il testo compare grande sul tablet del palco: lo speaker lo legge al microfono e conferma con «Letto». Qui sotto vedi se è arrivato e se è stato letto.</p>
       <textarea id="spkText" rows="4" maxlength="600" placeholder="Es.: Il pilota numero 112 è atteso in direzione gara."></textarea>
@@ -1000,23 +1013,28 @@ function fillCueList(){
    ===================================================================== */
 const RELAY = 'https://ntfy.sh/';
 const LINK_KEY = 'consolle-palco-link', INBOX_KEY = 'consolle-palco-inbox', OUT_KEY = 'consolle-palco-out';
+/* link «…/consolle-palco/?tappa=Nome#palco:CODICE» (o #segreteria:CODICE): ruolo, codice e tappa valgono per quella finestra */
 function loadLink(){
-  const l = {role:'segreteria', code:'', remoteVoice:true};
+  const l = {role:'segreteria', code:'', remoteVoice:false, tappa:''};
   try{ Object.assign(l, JSON.parse(localStorage.getItem(LINK_KEY)) || {}); }catch(e){}
   try{ const s = JSON.parse(sessionStorage.getItem(LINK_KEY)); if(s) Object.assign(l, s); }catch(e){}
-  const m = location.hash.match(/^#(palco|segreteria):([a-z0-9]{8,40})$/i);   // link «…/#palco:CODICE»
-  if(m){ l.role = m[1].toLowerCase(); l.code = m[2].toLowerCase(); try{ sessionStorage.setItem(LINK_KEY, JSON.stringify({role:l.role, code:l.code})); }catch(e){} }
+  const m = location.hash.match(/^#(palco|segreteria):([a-z0-9]{8,40})$/i);
+  if(m){
+    l.role = m[1].toLowerCase(); l.code = m[2].toLowerCase();
+    l.tappa = (new URLSearchParams(location.search).get('tappa') || '').slice(0, 60);
+    try{ sessionStorage.setItem(LINK_KEY, JSON.stringify({role:l.role, code:l.code, tappa:l.tappa})); }catch(e){}
+  }
   return l;
 }
 function saveLink(){
-  try{ localStorage.setItem(LINK_KEY, JSON.stringify(link)); sessionStorage.setItem(LINK_KEY, JSON.stringify({role:link.role, code:link.code})); }catch(e){}
+  try{ localStorage.setItem(LINK_KEY, JSON.stringify(link)); sessionStorage.setItem(LINK_KEY, JSON.stringify({role:link.role, code:link.code, tappa:link.tappa || ''})); }catch(e){}
 }
 let link = loadLink();
 const isPalco = () => link.role === 'palco';
 const linked = () => /^[a-z0-9]{8,40}$/.test(link.code || '');
 const topic = () => 'senators-cp-' + link.code;
 const remoteVoice = () => !isPalco() && linked() && !!link.remoteVoice;
-const palcoLink = code => redirectUri() + '#palco:' + code;
+const palcoLink = (code, tappa) => { tappa = tappa === undefined ? link.tappa : tappa; return redirectUri() + (tappa ? '?tappa=' + encodeURIComponent(tappa) : '') + '#palco:' + code; };
 const DEV_ID = Math.random().toString(36).slice(2, 10);
 const loadList = k => { try{ return JSON.parse(localStorage.getItem(k + '-' + today())) || []; }catch(e){ return []; } };
 const saveList = (k, v) => { try{ localStorage.setItem(k + '-' + today(), JSON.stringify(v.slice(-40))); }catch(e){} };
@@ -1154,6 +1172,7 @@ function applyRole(){
   $('btnSpk').hidden = isPalco();
   $('stLink').hidden = !linked();
   $('lblLink').textContent = isPalco() ? 'Segreteria' : 'Palco';
+  $('brandSub').textContent = 'SENATORS ENDURO CUP' + (linked() && link.tappa ? ' · ' + link.tappa.toUpperCase() : '');
   renderInbox();
 }
 
@@ -1387,15 +1406,30 @@ setInterval(clockTick, 200); clockTick();
 /* ---------- eventi ---------- */
 $('moments').addEventListener('click', e => { const b = e.target.closest('[data-m]'); if(b) startMoment(+b.dataset.m); });
 function newCode(){ const a = new Uint8Array(16); crypto.getRandomValues(a); return Array.from(a, x => 'abcdefghijkmnpqrstuvwxyz23456789'[x % 32]).join(''); }
+function drawQR(){
+  const el = $('spkQR'); el.innerHTML = '';
+  if(!linked()) return;
+  if(!window.QRCode){ el.textContent = 'QR non disponibile (serve internet): usa il link'; return; }
+  new QRCode(el, {text:palcoLink(link.code), width:180, height:180, colorDark:'#000000', colorLight:'#ffffff', correctLevel:QRCode.CorrectLevel.M});
+}
 function fillSpkSetup(){
   $('spkSetup').hidden = linked();
   $('spkLinkBox').hidden = !linked();
   $('spkLinkVal').value = linked() ? palcoLink(link.code) : '';
+  $('spkTappaNow').textContent = link.tappa || 'tappa senza nome';
   $('spkSend').disabled = !linked();
+  drawQR();
 }
+$('spkNewBtn').onclick = () => {
+  const name = $('spkNewTappa').value.trim().slice(0, 60);
+  if(!name){ toast('Scrivi il nome della nuova tappa'); $('spkNewTappa').focus(); return; }
+  link.role = 'segreteria'; link.code = newCode(); link.tappa = name; saveLink(); applyRole(); relayConnect();
+  $('spkNewTappa').value = ''; fillSpkSetup(); fillOutbox(); render();
+  toast('Nuovo codice per «' + name + '»: inquadra il QR con il tablet del palco', 8000);
+};
 $('btnSpk').onclick = () => { $('dlgSpk').showModal(); fillSpkSetup(); fillOutbox(); if(RL.ok) send('ping'); setTimeout(() => $('spkText').focus(), 50); };
 $('spkSetupBtn').onclick = () => {
-  link.role = 'segreteria'; link.code = newCode(); saveLink(); applyRole(); relayConnect();
+  link.role = 'segreteria'; link.code = newCode(); link.tappa = $('spkTappa').value.trim().slice(0, 60); saveLink(); applyRole(); relayConnect();
   fillSpkSetup(); fillOutbox(); render();
   toast('Collegamento creato: ora apri il link sul tablet del palco', 7000);
 };
