@@ -169,6 +169,7 @@ dialog::backdrop{background:rgba(0,0,0,.7)}
 .row.t{grid-template-columns:28px 1fr 100px}
 textarea{resize:vertical;line-height:1.4;font-size:17px !important}
 .row.t textarea{font-size:14px !important}
+#spkText{flex:none;min-height:calc(5 * 1.4em + 20px)}   /* almeno 5 righe: nella finestra a colonna non si schiaccia più */
 .dlg footer .btn{flex:none}
 .chk{display:flex;align-items:center;gap:8px}
 .chk input{width:auto}
@@ -459,7 +460,7 @@ body.palco .bottom{grid-template-columns:1fr}
         </div>
       </div>
       <p class="note">Il testo compare grande sul tablet del palco: lo speaker lo legge al microfono e conferma con «Letto». Qui sotto vedi se è arrivato e se è stato letto.</p>
-      <textarea id="spkText" rows="4" maxlength="600" placeholder="Es.: Il pilota numero 112 è atteso in direzione gara."></textarea>
+      <textarea id="spkText" rows="5" maxlength="600" placeholder="Es.: Il pilota numero 112 è atteso in direzione gara."></textarea>
       <label class="note chk"><input type="checkbox" id="spkUrg"> Urgente (sul palco compare in rosso)</label>
       <h3 style="margin-top:6px">Inviati oggi</h3>
       <div id="outList" class="outlist"></div>
