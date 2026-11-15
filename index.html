@@ -1223,6 +1223,19 @@ async function poll(){
 setInterval(() => { if(live() && !document.hidden) poll(); }, 3000);
 document.addEventListener('visibilitychange', () => { if(!document.hidden) poll(); });
 
+/* SCHERMO SEMPRE ACCESO sul tablet del palco (Screen Wake Lock, Chrome/Android su https).
+   Android rilascia il blocco quando la consolle va in secondo piano: lo riprendiamo appena torna visibile
+   e, per sicurezza, al primo tocco e ogni 30 s. Vale solo finché la consolle è aperta in primo piano. */
+let wakeLock = null;
+async function tieniAcceso(){
+  if(!isPalco() || !('wakeLock' in navigator) || document.hidden || (wakeLock && !wakeLock.released)) return;
+  try{ wakeLock = await navigator.wakeLock.request('screen'); }catch(e){ wakeLock = null; }
+}
+document.addEventListener('visibilitychange', tieniAcceso);
+document.addEventListener('pointerdown', tieniAcceso);
+setInterval(tieniAcceso, 30000);
+tieniAcceso();
+
 /* =====================================================================
    DISEGNO
    ===================================================================== */
