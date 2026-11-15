@@ -20,6 +20,7 @@
   --cond:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif;
 }
 *{box-sizing:border-box}
+[hidden]{display:none !important}
 html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);-webkit-tap-highlight-color:transparent}
 body{min-height:100vh;user-select:none;-webkit-user-select:none;touch-action:manipulation}
 button{font:inherit;color:inherit;cursor:pointer}
@@ -50,7 +51,7 @@ header{display:flex;align-items:center;gap:16px;padding:6px 4px}
 .gear::after{content:"";position:absolute;inset:-3px;border-radius:50%;background:conic-gradient(var(--teal) calc(var(--p,0)*1turn),transparent 0);-webkit-mask:radial-gradient(circle,transparent 21px,#000 22px);mask:radial-gradient(circle,transparent 21px,#000 22px)}
 
 /* ---------- panels ---------- */
-.main{display:grid;grid-template-columns:1.15fr 1fr 1fr 190px;gap:10px;min-height:0}
+.main{display:grid;gap:10px;min-height:0}
 .panel{position:relative;background:repeating-linear-gradient(90deg,rgba(255,255,255,.013) 0 1px,transparent 1px 3px),linear-gradient(180deg,var(--panel-hi),#0d0f10);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 8px 24px rgba(0,0,0,.5)}
 .panel::before,.panel::after{content:"";position:absolute;top:7px;width:6px;height:6px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#5d666b,#1b1f21)}
 .panel::before{left:7px}.panel::after{right:7px}
@@ -187,14 +188,37 @@ textarea:focus,input:focus,select:focus{outline:2px solid var(--teal-d);outline-
 .linkstate{font-family:var(--cond);font-weight:600;letter-spacing:.1em;text-transform:uppercase;font-size:14px}
 .linkstate.ok{color:var(--teal)} .linkstate.no{color:var(--amber)}
 
-/* collegamento segreteria ↔ palco */
-.phbtns{display:flex;gap:6px}
-.freebtn.spk{color:var(--amber);border-color:var(--amber);background:rgba(255,176,32,.07)}
+/* disposizione: Segreteria = riproduzione | momenti | orologio; Palco = messaggi | orologio + riproduzione | momenti */
+.main{grid-template-columns:1fr 1fr 1.15fr}
 .msgpanel{display:none}
-body.palco .msgpanel{display:flex}
-body.palco .cuebar, body.palco #commsPanel{display:none}
+body.palco .msgpanel{display:flex;grid-column:1;grid-row:1 / 3}
+body.palco .cuebar, body.palco #btnSpk{display:none}
 body.palco .app{grid-template-rows:auto 1fr auto}
-body.palco .main{grid-template-columns:1.5fr 1fr 1fr 190px}
+body.palco .main{grid-template-columns:1.3fr 1fr 1fr;grid-template-rows:minmax(0,1fr) auto}
+body.palco .clockpanel{grid-column:2;grid-row:1}
+body.palco .deck{grid-column:2;grid-row:2}
+body.palco .deck .spectrum{display:none}
+body.palco .momentspanel{grid-column:3;grid-row:1 / 3}
+body.palco .bottom{grid-template-columns:1fr}
+.big.spkbig{border:2px solid var(--amber);background:linear-gradient(180deg,#2a2210,#171309);color:var(--amber)}
+/* orologio da studio */
+.studio{position:relative;flex:1;min-height:0;container-type:size;display:grid;place-items:center}
+.studio svg{width:100%;height:100%}
+.studio .hm{stroke:#4a5459;stroke-width:3;stroke-linecap:round}
+.studio .sd{fill:#1a2023;transition:fill .15s}
+.studio .sd.on{fill:var(--teal-d)}
+.studio .sd.five.on{fill:var(--teal)}
+.studio .sd.now{fill:#fff;filter:drop-shadow(0 0 4px var(--teal))}
+.clkdig{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;font-family:var(--cond);font-weight:700;font-variant-numeric:tabular-nums;line-height:.92}
+#clkHM{font-size:21cqmin;color:var(--text);letter-spacing:.01em}
+#clkS{font-size:17cqmin;color:var(--teal);text-shadow:0 0 18px rgba(0,245,208,.45)}
+.clknext{display:grid;grid-template-columns:1fr auto;align-items:center;gap:0 12px;padding:8px 12px;border-radius:10px;background:#060808;border:1px solid #1d2326}
+.clknext small{font-family:var(--cond);font-weight:600;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.clknext b{grid-row:2;font-family:var(--cond);font-weight:600;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#clkCount{grid-row:1 / 3;grid-column:2;font-family:var(--cond);font-weight:700;font-size:32px;color:var(--teal);font-variant-numeric:tabular-nums}
+.clknext.soon{border-color:var(--amber)}
+.clknext.soon #clkCount{color:var(--amber);animation:blink 1s steps(2) infinite}
+.clknext.late #clkCount{color:var(--red)}
 .msgcard{flex:1;display:flex;flex-direction:column;gap:12px;background:#060808;border:1px solid #1d2326;border-radius:12px;padding:16px;min-height:0}
 .msgmeta{font-family:var(--cond);font-weight:600;letter-spacing:.14em;text-transform:uppercase;font-size:13px;color:var(--muted)}
 .msgtext{flex:1;font-weight:600;font-size:clamp(22px,2.3vw,34px);line-height:1.3;overflow:auto;user-select:text;min-height:0}
@@ -295,7 +319,6 @@ body.palco .main{grid-template-columns:1.5fr 1fr 1fr 190px}
       <div class="st"><i class="led warn" id="ledSp"></i><span class="lbl">Spotify</span></div>
       <div class="st"><i class="led" id="ledDev"></i><span class="lbl">Dispositivo</span></div>
       <div class="st" id="stLink" hidden><i class="led" id="ledLink"></i><span class="lbl" id="lblLink">Palco</span></div>
-      <div class="clock" id="clock">--:--</div>
       <button class="gear" id="gear" title="Tieni premuto per le impostazioni" aria-label="Impostazioni (tieni premuto)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
       </button>
@@ -319,7 +342,6 @@ body.palco .main{grid-template-columns:1.5fr 1fr 1fr 190px}
         <div class="msgmeta" id="msgMeta">Nessun messaggio</div>
         <div class="msgtext" id="msgText">Quando la segreteria manda una comunicazione, compare qui.</div>
         <div class="msgbtns">
-          <button class="tbtn" id="msgDuck" type="button">Abbassa musica</button>
           <button class="tbtn ok" id="msgRead" type="button">✓ Letto</button>
         </div>
       </div>
@@ -327,7 +349,7 @@ body.palco .main{grid-template-columns:1.5fr 1fr 1fr 190px}
     </section>
 
     <!-- DECK -->
-    <section class="panel">
+    <section class="panel deck">
       <div class="ph"><span>In riproduzione</span><em id="deckState">fermo</em></div>
       <div class="screen">
         <div class="cover off" id="cover">–</div>
@@ -348,50 +370,29 @@ body.palco .main{grid-template-columns:1.5fr 1fr 1fr 190px}
     </section>
 
     <!-- MOMENTI -->
-    <section class="panel">
+    <section class="panel momentspanel">
       <div class="ph"><span>Momenti</span><em>playlist</em></div>
       <div class="grid moments" id="moments"></div>
     </section>
 
-    <!-- COMUNICAZIONI -->
-    <section class="panel" id="commsPanel">
-      <div class="ph"><span>Comunicazioni</span><span class="phbtns"><button class="freebtn spk" id="btnSpk" type="button" hidden>✉ Allo speaker</button><button class="freebtn" id="btnFree" type="button">✎ Annuncio</button></span></div>
-      <div class="grid comms" id="comms"></div>
-    </section>
-
-    <!-- FADER -->
-    <section class="panel strip">
-      <div class="ph"><span>Livelli</span></div>
-      <div class="faders">
-        <div class="ch"><label>MASTER</label><div class="fader" id="fMaster"><div class="ticks"></div><div class="slot"></div><div class="cap"></div></div><output id="oMaster">70</output></div>
-        <div class="vuwrap"><label>L&nbsp;&nbsp;R</label><div class="vurow"><div class="vu" id="vu"><div class="col"></div><div class="col"></div></div><div class="vscale"><span>+3</span><span>0</span><span>-3</span><span>-6</span><span>-10</span><span>-20</span><span>-∞</span></div></div></div>
-        <div class="ch"><label>ANNUNCIO</label><div class="fader" id="fDuck" style="--c:var(--amber)"><div class="ticks"></div><div class="slot"></div><div class="cap"></div></div><output id="oDuck">20</output></div>
+    <!-- OROLOGIO DA STUDIO -->
+    <section class="panel clockpanel">
+      <div class="ph"><span>Orologio</span><em id="clkDate"></em></div>
+      <div class="studio">
+        <svg id="clkSvg" viewBox="0 0 220 220" aria-hidden="true"></svg>
+        <div class="clkdig"><span id="clkHM">--:--</span><span id="clkS">--</span></div>
       </div>
-      <div class="vol-now">Volume uscita <b id="volNow">0%</b></div>
+      <div class="clknext" id="clkNext"><small>Prossimo evento</small><b id="clkNextName">—</b><span id="clkCount">--:--</span></div>
     </section>
   </div>
 
   <div class="bottom">
-    <button class="big duck" id="btnDuck"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15 9.5a3.5 3.5 0 0 1 0 5"/><path d="M18 7a7 7 0 0 1 0 10"/></svg>Annuncio <small id="duckHint">abbassa al 20%</small></button>
+    <button class="big spkbig" id="btnSpk" type="button"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Messaggio allo speaker</button>
     <button class="big mute" id="btnMute"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M16 9l6 6M22 9l-6 6"/></svg>Silenzio <small id="muteHint">ferma subito la musica</small></button>
   </div>
 </div>
 <div class="toast" id="toast"></div>
 
-<dialog id="dlgFree">
-  <div class="dlg">
-    <header><h2>Annuncio libero</h2></header>
-    <div class="body">
-      <textarea id="freeText" rows="4" maxlength="400" placeholder="Scrivi il messaggio da leggere al pubblico…"></textarea>
-      <label class="note chk"><input type="checkbox" id="freeRep"> Leggi due volte</label>
-    </div>
-    <footer>
-      <span class="sp"></span>
-      <button class="btn" id="freeCancel" type="button">Annulla</button>
-      <button class="btn pri" id="freeGo" type="button">Leggi l'annuncio</button>
-    </footer>
-  </div>
-</dialog>
 
 <dialog id="dlgSpk">
   <div class="dlg">
@@ -458,26 +459,11 @@ body.palco .main{grid-template-columns:1.5fr 1fr 1fr 190px}
         <div class="gen" style="margin-top:8px">
           <label>Questo dispositivo è<select id="setRole"><option value="segreteria">Segreteria (consolle completa)</option><option value="palco">Palco (consolle ridotta per lo speaker)</option></select></label>
           <label>Codice di collegamento<span class="inline"><input id="setCode" spellcheck="false" autocomplete="off" placeholder="Premi «Genera»"><button class="btn" type="button" id="btnGen">Genera</button></span></label>
-          <label>Annunci vocali premuti in segreteria<select id="setRemote"><option value="1">Suonano sul palco</option><option value="">Suonano qui</option></select></label>
           <label>Link da aprire sul tablet del palco<span class="inline"><input id="setPalcoLink" readonly><button class="btn" type="button" id="btnCopyLink">Copia</button></span></label>
         </div>
       </section>
       <section><h3>Momenti</h3><p class="note">Nome del tasto, link della playlist Spotify (in Spotify: ··· → Condividi → Copia link) e ordine dei brani.</p><div id="setMoments" style="margin-top:8px"></div></section>
-      <section><h3>Comunicazioni</h3><p class="note">Annuncio vocale: abbassa la musica, suona il gong, legge il testo con la voce del dispositivo e poi rialza la musica. Abbassa musica: tiene la musica bassa finché non ritocchi. Silenzio: come il tasto rosso. Scrivi i numeri in lettere («dieci minuti») per una lettura più naturale.</p><div id="setComms" style="margin-top:8px"></div></section>
-      <section><h3>Scaletta della giornata</h3><p class="note">Ogni evento ha un orario e dei passi che partono in fila. Durante la gara basta premere «VAI» sulla barra in alto: parte il prossimo evento. L'orario è solo un promemoria, niente parte da solo. Anche un tasto Comunicazione può diventare «Sequenza» con i suoi passi.</p><div id="setCues" style="margin-top:8px"></div><button class="btn" type="button" id="btnAddCue">+ Aggiungi evento</button></section>
-      <section><h3>Voce degli annunci</h3>
-        <div class="gen">
-          <label>Voce<select id="setVoice"></select></label>
-          <label>Velocità<select id="setRate"><option value="0.85">Lenta</option><option value="0.95">Normale</option><option value="1.05">Svelta</option></select></label>
-          <label>Gong prima dell'annuncio<select id="setChime"><option value="1">Sì</option><option value="">No</option></select></label>
-        </div>
-      </section>
-      <section><h3>Generale</h3>
-        <div class="gen">
-          <label>Durata dissolvenza (secondi)<input type="number" id="setFade" min="0" max="5" step="0.5"></label>
-          <label>Livello annuncio (%)<input type="number" id="setDuck" min="0" max="80" step="5"></label>
-        </div>
-      </section>
+      <section><h3>Scaletta della giornata</h3><p class="note">Ogni evento ha un orario e dei passi che partono in fila. Durante la gara basta premere «VAI» sulla barra in alto: parte il prossimo evento. L'orario è solo un promemoria, niente parte da solo. Il passo «Messaggio allo speaker» manda il testo al tablet del palco; il conto alla rovescia verso il prossimo evento è sotto l'orologio.</p><div id="setCues" style="margin-top:8px"></div><button class="btn" type="button" id="btnAddCue">+ Aggiungi evento</button></section>
     </div>
     <footer>
       <button class="btn" id="btnExport">Esporta</button>
@@ -516,12 +502,12 @@ const DEF = {
   ],
   cues:[   // scaletta di esempio: orari e passi si cambiano nelle impostazioni
     {time:'07:30', name:'Apertura paddock', steps:[{t:'moment', m:0}]},
-    {time:'08:45', name:'Briefing piloti', steps:[{t:'comm', c:1}]},
-    {time:'09:25', name:'Partenze', steps:[{t:'comm', c:2}, {t:'moment', m:1}]},
-    {time:'12:30', name:'Pausa pranzo', steps:[{t:'comm', c:6}, {t:'moment', m:2}]},
+    {time:'08:45', name:'Briefing piloti', steps:[{t:'msg', text:'Annunciare: il briefing piloti inizia tra dieci minuti presso il palco. Tutti i piloti sono pregati di presentarsi.'}]},
+    {time:'09:25', name:'Partenze', steps:[{t:'msg', text:'Annunciare: partenza tra cinque minuti, piloti in zona partenza.'}, {t:'moment', m:1}]},
+    {time:'12:30', name:'Pausa pranzo', steps:[{t:'msg', text:'Annunciare l\'inizio della pausa pranzo e l\'orario di ripresa.'}, {t:'moment', m:2}]},
     {time:'15:00', name:'Arrivi', steps:[{t:'moment', m:3}]},
-    {time:'16:30', name:'Premiazioni', steps:[{t:'stop'}, {t:'comm', c:4}, {t:'moment', m:4}]},
-    {time:'17:30', name:'Chiusura', steps:[{t:'comm', c:5}, {t:'moment', m:5}]}
+    {time:'16:30', name:'Premiazioni', steps:[{t:'stop'}, {t:'msg', text:'Chiamare i piloti premiati al podio per la cerimonia di premiazione.'}, {t:'wait', s:45}, {t:'moment', m:4}]},
+    {time:'17:30', name:'Chiusura', steps:[{t:'msg', text:'Ringraziare sponsor e partner, saluti finali.'}, {t:'moment', m:5}]}
   ],
   duck:20, fade:1.5, clientId:'', deviceName:'', voice:'', rate:0.95, chime:true
 };
@@ -536,10 +522,16 @@ function merge(j){
     if(x.type === 'voice' && !x.text){ const d = DEF.comms.find(d => d.name === x.name); x.text = d ? d.text : 'Attenzione. ' + x.name + '.'; if(d) x.rep = d.rep; }
     return x;
   });
-  c.cues = (Array.isArray(c.cues) ? c.cues : []).map(q => Object.assign({time:'09:00', name:'', steps:[]}, q));
+  // i passi «annuncio» (non più usati) diventano «messaggio allo speaker»
+  const conv = st => {
+    if(st.t === 'say') return {t:'msg', text:st.text || ''};
+    if(st.t === 'comm'){ const cm = c.comms[+st.c]; if(cm && cm.type === 'voice') return {t:'msg', text:cm.text || cm.name}; if(cm && cm.type === 'silence') return {t:'stop'}; return null; }
+    return st;
+  };
+  c.cues = (Array.isArray(c.cues) ? c.cues : []).map(q => { q = Object.assign({time:'09:00', name:'', steps:[]}, q); q.steps = (q.steps || []).map(conv).filter(Boolean); return q; });
   return c;
 }
-function load(){ try{ const s = localStorage.getItem(KEY); if(s) return merge(JSON.parse(s)); }catch(e){} return clone(DEF); }
+function load(){ try{ const s = localStorage.getItem(KEY); if(s) return merge(JSON.parse(s)); }catch(e){} return merge({}); }
 function store(){ try{ localStorage.setItem(KEY, JSON.stringify(cfg)); }catch(e){} }
 let cfg = load();
 function esc(s){ return String(s).replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch])); }
@@ -663,7 +655,8 @@ function fadeTo(target, ms, done){
   const gen = ++fadeGen;
   cancelAnimationFrame(fadeRAF);
   if(live()){
-    if(SP.noVol){ fading = false; done && done(); return; }
+    // il volume si regola sul mixer: la consolle non manda più comandi di volume a Spotify
+    fading = false; S.cur = Math.max(S.cur, 70); done && done(); return;
     target = Math.round(target);
     const from = S.cur, steps = ms <= 0 ? 1 : Math.max(2, Math.min(6, Math.round(ms/250)));
     fading = true;
@@ -724,7 +717,6 @@ async function startMoment(i){
     if(wasPlaying) await new Promise((res, rej) => { fadeTo(0, fadeMs()*0.5, res); setTimeout(res, fadeMs()*0.5 + 1500); });
     await ensureDev();
     // volume a zero sul dispositivo prima di partire, poi dissolvenza in salita
-    try{ await devCall('PUT', '/me/player/volume', {volume_percent:0}); S.cur = 0; lastVolSent = 0; }catch(e){}
     try{ await devCall('PUT', '/me/player/shuffle', {state:String(!!cfg.moments[i].shuffle)}); }catch(e){}
     await devCall('PUT', '/me/player/play', null, {context_uri:uri});
     S.moment = i; S.playing = true; S.muted = false; S.pos = 0;
@@ -746,7 +738,6 @@ async function togglePlay(){
     if(S.playing){ S.playing = false; render(); fadeGen++; await devCall('PUT', '/me/player/pause'); }
     else {
       S.muted = false; S.playing = true; render();
-      try{ await devCall('PUT', '/me/player/volume', {volume_percent:0}); S.cur = 0; lastVolSent = 0; }catch(e){}
       await devCall('PUT', '/me/player/play');
       fadeTo(outTarget(), fadeMs());
     }
@@ -867,7 +858,7 @@ function pressComm(i){
 /* =====================================================================
    SEQUENZE (come le macro del Batch Commander): più passi in fila con un tocco
    ===================================================================== */
-const STEP_T = {moment:'Avvia momento', comm:'Tasto comunicazione', say:'Annuncio con testo', stop:'Ferma musica', wait:'Attendi (secondi)'};
+const STEP_T = {moment:'Avvia momento', msg:'Messaggio allo speaker', stop:'Ferma musica', wait:'Attendi (secondi)'};
 let seqGen = 0;
 S.seq = null;   // {name, k, n, id, src}
 const announceWait = (name, text, rep, i) => new Promise(res => announce(name, text, rep, i, res));
@@ -894,6 +885,7 @@ async function runSeq(name, steps, src){
     const st = steps[k];
     try{
       if(st.t === 'moment') await startMoment(+st.m || 0);
+      else if(st.t === 'msg') await sendSpeakerText(st.text, !!st.urg);
       else if(st.t === 'comm'){
         const c = cfg.comms[+st.c];
         if(!c || c.type === 'seq') continue;
@@ -911,6 +903,7 @@ async function runSeq(name, steps, src){
 function stepLabel(st){
   switch(st.t){
     case 'moment': return '♫ ' + ((cfg.moments[+st.m] || {}).name || '?');
+    case 'msg': { const t = String(st.text || ''); return '✉ Speaker: «' + (t.length > 40 ? t.slice(0, 40) + '…' : t) + '»'; }
     case 'comm': return 'Annuncio: ' + ((cfg.comms[+st.c] || {}).name || '?');
     case 'say': { const t = String(st.text || ''); return 'Annuncio: «' + (t.length > 40 ? t.slice(0, 40) + '…' : t) + '»'; }
     case 'stop': return '■ Ferma musica';
@@ -1038,7 +1031,7 @@ function onRelay(m){
       saveList(INBOX_KEY, RL.inbox); RL.view = null;
       send('ack', {ref:m.id, state:'ricevuto'});
       try{ navigator.vibrate && navigator.vibrate([250, 120, 250]); }catch(e){}
-      renderInbox();
+      render();
     }
     else if(m.kind === 'say'){
       if(m.age > 30) return;   // annuncio vecchio: non va letto in ritardo
@@ -1076,8 +1069,6 @@ function renderInbox(){
   $('msgText').textContent = cur ? cur.text : 'Quando la segreteria manda una comunicazione, compare qui.';
   card.dataset.id = cur ? cur.id : '';
   $('msgRead').textContent = cur && cur.read ? 'Chiudi' : '✓ Letto';
-  $('msgDuck').classList.toggle('on', S.ducked);
-  $('msgDuck').textContent = S.ducked ? 'Rialza musica' : 'Abbassa musica';
   $('msgCount').textContent = unread.length ? unread.length + ' da leggere' : '';
   $('app').classList.toggle('alert', unread.length > 0 && !S.muted);
   $('msgList').innerHTML = RL.inbox.slice().reverse().slice(0, 12).map(x => `<button type="button" data-msg="${x.id}" class="${x.read ? '' : 'unread'}"><b>${hhmm(x.t)}</b>${x.urg ? '⚠ ' : ''}${esc(x.text)}</button>`).join('');
@@ -1088,22 +1079,27 @@ function markRead(){
   if(x.read){ RL.view = null; renderInbox(); return; }
   x.read = true; saveList(INBOX_KEY, RL.inbox);
   send('ack', {ref:x.id, state:'letto'});
-  if(S.ducked && !RL.inbox.some(y => !y.read)) toggleDuck();   // finito di leggere: la musica torna su
   RL.view = null; renderInbox(); render();
 }
 
 /* segreteria: messaggi inviati */
+async function sendSpeakerText(text, urg){
+  text = String(text || '').trim();
+  if(!text) return null;
+  if(!linked()){ toast('Messaggio allo speaker non inviato: crea prima il collegamento con il palco', 7000); return null; }
+  const m = await send('msg', {text, urg:!!urg});
+  if(!m) return null;
+  RL.out.push({id:m.id, kind:'msg', text, t:m.t, state:'inviato'}); saveList(OUT_KEY, RL.out);
+  fillOutbox(); toast('Messaggio inviato al palco');
+  return m;
+}
 async function sendToSpeaker(){
   const text = $('spkText').value.trim();
   if(!text){ toast('Scrivi prima il messaggio'); return; }
-  if(!linked()){ toast('Prima imposta il codice di collegamento nelle impostazioni'); return; }
   $('spkSend').disabled = true;
-  const m = await send('msg', {text, urg:$('spkUrg').checked});
+  const m = await sendSpeakerText(text, $('spkUrg').checked);
   $('spkSend').disabled = false;
-  if(!m) return;
-  RL.out.push({id:m.id, kind:'msg', text, t:m.t, state:'inviato'}); saveList(OUT_KEY, RL.out);
-  $('spkText').value = ''; $('spkUrg').checked = false;
-  fillOutbox(); toast('Messaggio inviato al palco');
+  if(m){ $('spkText').value = ''; $('spkUrg').checked = false; }
 }
 function fillOutbox(){
   if(!$('dlgSpk').open) return;
@@ -1193,9 +1189,6 @@ function buildPads(){
     return `<button class="pad${p && p.img ? ' cov' : ''}" data-m="${i}" style="--c:var(--teal)${p && p.img ? `;--img:url('${esc(p.img)}')` : ''}"><span class="bar"></span><span class="k">${i+1}</span>
       <span class="n">${esc(m.name)}</span><span class="s">${esc(sub)}</span><span class="eq"><i></i><i></i><i></i><i></i></span></button>`;
   }).join('');
-  $('comms').innerHTML = cfg.comms.map((c, i) => `
-    <button class="pad" data-c="${i}" style="--c:${COLORS[c.color] || COLORS.teal}"><span class="bar"></span>
-      <span class="n">${esc(c.name)}</span><span class="s">${c.type === 'voice' ? 'Annuncio vocale' + (+c.rep > 1 ? ' ×2' : '') : c.type === 'seq' ? 'Sequenza · ' + (c.steps || []).length + ' passi' : TYPES[c.type]}</span><span class="fill"></span></button>`).join('');
 }
 function render(){
   const L = live();
@@ -1223,12 +1216,11 @@ function render(){
   $('onair').textContent = [S.seq && `▶ ${S.seq.name} (${S.seq.k}/${S.seq.n})`, S.msg && `● IN ONDA: ${S.msg.name}`].filter(Boolean).join('  ·  ');
   $('lblPlay').textContent = S.playing ? 'Pausa' : 'Play';
   $('icoPlay').innerHTML = S.playing ? '<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>' : '<path d="M7 5v14l12-7z"/>';
-  $('btnDuck').classList.toggle('on', S.ducked);
-  $('duckHint').textContent = S.ducked ? 'tocca per rialzare' : `abbassa al ${cfg.duck}%`;
   $('btnMute').classList.toggle('on', S.muted);
   $('muteHint').textContent = S.muted ? 'attivo · tocca un momento o Play per ripartire' : 'ferma subito la musica';
   $('app').classList.toggle('muted', S.muted);
-  const sg = S.muted ? ['mute', 'SILENZIO'] : S.msg ? ['voice', 'ANNUNCIO IN ONDA'] : S.ducked ? ['voice', 'SPEAKER IN ONDA'] : S.playing ? ['music', 'MUSICA IN ONDA'] : ['', 'PRONTO'];
+  const unreadN = isPalco() ? RL.inbox.filter(x => !x.read).length : 0;
+  const sg = S.muted ? ['mute', 'SILENZIO'] : unreadN ? ['voice', 'MESSAGGIO DA LEGGERE'] : S.playing ? ['music', 'MUSICA IN ONDA'] : ['', 'PRONTO'];
   $('sign').className = 'sign ' + sg[0]; $('signTxt').textContent = sg[1];
   // collegamento segreteria ↔ palco
   if(linked()){
@@ -1248,7 +1240,6 @@ function render(){
     if(SP.ok === false){ chip.className = 'chip bad'; chip.textContent = 'Spotify non risponde · controlla internet'; }
     else if(SP.dev === 'other'){ chip.className = 'chip bad'; chip.textContent = 'La musica suona su «' + SP.other + '», non sul palco'; }
     else if(SP.dev === 'none'){ chip.className = 'chip bad'; chip.textContent = 'Spotify non risponde: aprilo sul dispositivo del palco'; }
-    else if(SP.noVol){ chip.className = 'chip'; chip.textContent = 'Volume bloccato su «' + (dev ? dev.name : '?') + '» · Annuncio = pausa'; }
     else { chip.className = 'chip ok'; chip.textContent = 'Spotify · ' + (dev ? dev.name : 'collegato'); }
   }
 }
@@ -1289,29 +1280,6 @@ function makeFader(el, get, set, def){
   new ResizeObserver(place).observe(el);
   return place;
 }
-let volDeb = 0;
-function pushVolume(){
-  clearTimeout(volDeb);
-  volDeb = setTimeout(() => { if(S.playing && !S.muted) fadeTo(outTarget(), 0); }, 250);
-}
-makeFader($('fMaster'), () => S.master, v => {
-  S.master = v; $('oMaster').textContent = v; try{ localStorage.setItem(KEY + '-master', v); }catch(e){}
-  if(!live()){ if(S.playing && !S.muted){ cancelAnimationFrame(fadeRAF); S.cur = outTarget(); } }
-  else pushVolume();
-}, 70);
-const placeDuck = makeFader($('fDuck'), () => cfg.duck, v => {
-  cfg.duck = Math.min(80, v); $('oDuck').textContent = cfg.duck; store();
-  if((S.ducked || S.msg) && S.playing){ if(live()) pushVolume(); else { cancelAnimationFrame(fadeRAF); S.cur = outTarget(); } }
-  render();
-}, 20);
-try{ const m = +localStorage.getItem(KEY + '-master'); if(m > 0) S.master = m; }catch(e){}
-$('oMaster').textContent = S.master; $('oDuck').textContent = cfg.duck;
-
-/* ---------- VU ---------- */
-const VU_N = 18;
-const vuCols = [...$('vu').querySelectorAll('.col')];
-vuCols.forEach(c => { c.innerHTML = '<i></i>'.repeat(VU_N); });
-const vuColor = k => k >= VU_N - 2 ? '#FF3B3B' : k >= VU_N - 5 ? '#FFB020' : '#00F5D0';
 
 /* ---------- analizzatore (grafico: segue volume e stato, non il segnale audio) ---------- */
 const cvs = $('spec'), ctx = cvs.getContext('2d');
@@ -1349,34 +1317,55 @@ function frame(t){
     }
   }
   ctx.globalAlpha = 1;
-  const avg = lvl.reduce((a, b) => a + b, 0)/BARS;
-  const tl = Math.min(1, avg*1.5*(0.9 + 0.2*Math.random())), tr = Math.min(1, avg*1.5*(0.9 + 0.2*Math.random()));
-  vuL += (tl - vuL)*Math.min(1, dt*12); vuR += (tr - vuR)*Math.min(1, dt*12);
-  [vuL, vuR].forEach((v, ci) => { const on = Math.round(v*VU_N); [...vuCols[ci].children].forEach((el, k) => { el.style.background = k < on ? vuColor(k) : '#14191b'; el.style.boxShadow = k < on ? `0 0 6px ${vuColor(k)}` : 'none'; }); });
   if(S.playing){ S.pos += dt; if(S.pos >= S.len){ if(live()) S.pos = S.len; else next(); } }
   const has = live() ? !!NOW : S.moment >= 0;
   $('prog').style.width = has && S.len ? (100*S.pos/S.len) + '%' : '0';
   $('tcur').textContent = fmt(has ? S.pos : 0); $('tlen').textContent = has && S.len ? '-' + fmt(Math.max(0, S.len - S.pos)) : '0:00';
-  $('volNow').textContent = Math.round(S.playing ? S.cur : 0) + '%';
-  document.querySelectorAll('[data-c] .fill').forEach(f => {
-    const i = +f.parentElement.dataset.c;
-    f.style.width = (S.msg && S.msg.i === i) ? Math.min(100, 100*(t - S.msg.t0)/S.msg.dur) + '%' : '0';
-  });
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
 
+/* ---------- orologio da studio: 60 secondi in cerchio, ora grande, conto alla rovescia ---------- */
+(function buildClock(){
+  let h = '';
+  for(let i = 0; i < 12; i++){
+    const a = i*Math.PI/6, s = Math.sin(a), c = Math.cos(a);
+    h += `<line class="hm" x1="${(110 + s*101).toFixed(1)}" y1="${(110 - c*101).toFixed(1)}" x2="${(110 + s*108).toFixed(1)}" y2="${(110 - c*108).toFixed(1)}"/>`;
+  }
+  for(let i = 0; i < 60; i++){
+    const a = i*Math.PI/30;
+    h += `<circle class="sd${i % 5 ? '' : ' five'}" cx="${(110 + Math.sin(a)*92).toFixed(1)}" cy="${(110 - Math.cos(a)*92).toFixed(1)}" r="${i % 5 ? 2.7 : 3.7}"/>`;
+  }
+  $('clkSvg').innerHTML = h;
+})();
+const clkDots = [...$('clkSvg').querySelectorAll('.sd')];
+const p2 = n => String(n).padStart(2, '0');
+let clkLast = -1;
+function clockTick(){
+  const d = new Date(), s = d.getSeconds();
+  if(s === clkLast) return;
+  clkLast = s;
+  $('clkHM').textContent = p2(d.getHours()) + ':' + p2(d.getMinutes());
+  $('clkS').textContent = p2(s);
+  clkDots.forEach((el, i) => el.classList.toggle('on', i <= s));
+  clkDots.forEach((el, i) => el.classList.toggle('now', i === s));
+  if(s === 0 || !$('clkDate').textContent) $('clkDate').textContent = d.toLocaleDateString('it-IT', {weekday:'short', day:'numeric', month:'short'});
+  // conto alla rovescia al secondo verso il prossimo evento della scaletta
+  const n = nextCue(), c = cfg.cues[n], box = $('clkNext');
+  if(!c){ $('clkNextName').textContent = cfg.cues.length ? 'Scaletta completata' : 'Nessun evento in scaletta'; $('clkCount').textContent = ''; box.className = 'clknext'; return; }
+  const [hh, mm] = String(c.time).split(':').map(Number);
+  const target = new Date(d); target.setHours(hh || 0, mm || 0, 0, 0);
+  const diff = Math.round((target - d)/1000), a = Math.abs(diff);
+  const fmtD = x => (x >= 3600 ? Math.floor(x/3600) + ':' + p2(Math.floor(x % 3600/60)) : Math.floor(x/60)) + ':' + p2(x % 60);
+  $('clkNextName').textContent = c.time + ' · ' + c.name;
+  $('clkCount').textContent = diff > 0 ? '−' + fmtD(a) : diff > -60 ? 'ORA' : '+' + fmtD(a);
+  box.className = 'clknext' + (diff <= 0 ? ' late' : diff <= 60 ? ' soon' : '');
+  if(s === 0) renderCues();
+}
+setInterval(clockTick, 200); clockTick();
+
 /* ---------- eventi ---------- */
 $('moments').addEventListener('click', e => { const b = e.target.closest('[data-m]'); if(b) startMoment(+b.dataset.m); });
-$('comms').addEventListener('click', e => { const b = e.target.closest('[data-c]'); if(b) pressComm(+b.dataset.c); });
-$('btnFree').onclick = () => { $('dlgFree').showModal(); setTimeout(() => $('freeText').focus(), 50); };
-$('freeCancel').onclick = () => $('dlgFree').close();
-$('freeGo').onclick = () => {
-  const t = $('freeText').value.trim();
-  if(!t){ toast('Scrivi prima il testo dell\'annuncio'); return; }
-  $('dlgFree').close();
-  announce('Annuncio libero', t, $('freeRep').checked ? 2 : 1, -1);
-};
 function newCode(){ const a = new Uint8Array(16); crypto.getRandomValues(a); return Array.from(a, x => 'abcdefghijkmnpqrstuvwxyz23456789'[x % 32]).join(''); }
 function fillSpkSetup(){
   $('spkSetup').hidden = linked();
@@ -1394,7 +1383,6 @@ $('spkLinkCopy').onclick = async () => { try{ await navigator.clipboard.writeTex
 $('spkClose').onclick = () => $('dlgSpk').close();
 $('spkSend').onclick = sendToSpeaker;
 $('msgRead').onclick = markRead;
-$('msgDuck').onclick = () => { toggleDuck(); renderInbox(); };
 $('msgList').addEventListener('click', e => { const b = e.target.closest('[data-msg]'); if(b){ RL.view = b.dataset.msg; renderInbox(); } });
 $('cueGo').onclick = () => {
   if(performance.now() - cueLock < 1200) return;   // evita il doppio tocco involontario
@@ -1412,12 +1400,11 @@ $('cueRows').addEventListener('click', e => {
 });
 $('btnPlay').onclick = togglePlay;
 $('btnNext').onclick = next;
-$('btnDuck').onclick = toggleDuck;
 $('btnMute').onclick = toggleMute;
 
 const net = () => { $('ledNet').className = 'led ' + (navigator.onLine ? 'ok' : 'bad'); };
 addEventListener('online', () => { net(); poll(); }); addEventListener('offline', net); net();
-const tick = () => { $('clock').textContent = new Date().toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'}); renderCues(); };
+const tick = () => { renderCues(); };
 setInterval(tick, 5000); tick();
 
 /* ---------- impostazioni (tieni premuto 1,5 s) ---------- */
@@ -1438,19 +1425,6 @@ function fillDevices(){
   $('setDevice').innerHTML = `<option value="">Quello attivo in quel momento</option>` +
     [...names].map(n => { const d = devices.find(x => x.name === n); return `<option value="${esc(n)}" ${n === draft.deviceName ? 'selected' : ''}>${esc(n)}${d ? ` (${d.type}${d.is_active ? ', attivo' : ''}${d.supports_volume === false ? ', volume NON controllabile' : ''})` : ' (non trovato ora)'}</option>`; }).join('');
 }
-function fillVoices(){
-  const vs = itVoices(), cur = pickVoice(draft.voice);
-  $('setVoice').innerHTML = vs.length
-    ? vs.map(v => `<option value="${esc(v.voiceURI)}" ${cur && v.voiceURI === cur.voiceURI ? 'selected' : ''}>${esc(v.name)}${v.localService ? '' : ' (online)'}</option>`).join('')
-    : `<option value="">${TTS ? 'Voce italiana del dispositivo' : 'Sintesi vocale non disponibile'}</option>`;
-}
-if(TTS) speechSynthesis.addEventListener('voiceschanged', () => { if($('dlg').open) fillVoices(); });
-$('dlg').addEventListener('click', e => {
-  const b = e.target.closest('[data-test]'); if(!b) return;
-  collect(); unlockAudio();
-  const c = draft.comms[+b.dataset.test], g = draft.chime ? chime() : 0;
-  setTimeout(() => speak(c.text, 1, null, null, draft), g);
-});
 function fillSettings(){
   $('setClient').value = draft.clientId; $('setRedirect').value = redirectUri();
   $('linkState').textContent = live() ? 'Collegato' : 'Non collegato';
@@ -1462,26 +1436,14 @@ function fillSettings(){
       <input data-k="m-name-${i}" value="${esc(m.name)}" maxlength="28" placeholder="Nome momento">
       <input data-k="m-pl-${i}" value="${esc(m.pl)}" placeholder="https://open.spotify.com/playlist/…" spellcheck="false">
       <select data-k="m-shuffle-${i}"><option value="1" ${m.shuffle ? 'selected' : ''}>Casuale</option><option value="" ${m.shuffle ? '' : 'selected'}>In ordine</option></select></div>`).join('');
-  $('setComms').innerHTML = draft.comms.map((c, i) => `
-    <div class="cblock"><div class="row c"><span class="ix">${i+1}</span>
-      <input data-k="c-name-${i}" value="${esc(c.name)}" maxlength="28" placeholder="Nome tasto">
-      <select data-k="c-type-${i}">${Object.entries(TYPES).map(([k, v]) => `<option value="${k}" ${k === c.type ? 'selected' : ''}>${v}</option>`).join('')}</select>
-      <select data-k="c-color-${i}">${Object.entries(COLOR_NAMES).map(([k, v]) => `<option value="${k}" ${k === c.color ? 'selected' : ''}>${v}</option>`).join('')}</select>
-      <select data-k="c-rep-${i}" ${c.type !== 'voice' ? 'disabled' : ''}><option value="1" ${+c.rep > 1 ? '' : 'selected'}>Leggi 1 volta</option><option value="2" ${+c.rep > 1 ? 'selected' : ''}>Leggi 2 volte</option></select></div>
-      ${c.type === 'voice' ? `<div class="row t"><span></span><textarea data-k="c-text-${i}" rows="2" maxlength="400" placeholder="Testo da leggere" style="font-size:14px !important">${esc(c.text)}</textarea><button class="btn" type="button" data-test="${i}">▶ Prova</button></div>` : ''}
-      ${c.type === 'seq' ? stepsEditor('c-' + i, c.steps) : ''}</div>`).join('');
   $('setCues').innerHTML = draft.cues.map((q, i) => `
     <div class="cblock"><div class="row q"><span class="ix">${i+1}</span>
       <input type="time" data-k="q-time-${i}" value="${esc(q.time)}">
       <input data-k="q-name-${i}" value="${esc(q.name)}" maxlength="40" placeholder="Nome evento">
       <button type="button" class="btn sdel" data-qdel="${i}" title="Togli evento">✕</button></div>
       ${stepsEditor('q-' + i, q.steps)}</div>`).join('');
-  $('setFade').value = draft.fade; $('setDuck').value = draft.duck;
-  $('setRole').value = link.role; $('setCode').value = link.code || ''; $('setRemote').value = link.remoteVoice ? '1' : '';
+  $('setRole').value = link.role; $('setCode').value = link.code || '';
   $('setPalcoLink').value = link.code ? palcoLink(link.code) : '';
-  fillVoices();
-  $('setRate').value = ['0.85','0.95','1.05'].includes(String(draft.rate)) ? String(draft.rate) : '0.95';
-  $('setChime').value = draft.chime ? '1' : '';
 }
 /* editor dei passi di una sequenza (tasto Sequenza o evento della scaletta) */
 function stepsEditor(key, steps){
@@ -1493,7 +1455,7 @@ function stepsEditor(key, steps){
 function stepParam(s){
   if(s.t === 'moment') return `<select data-s="p">${draft.moments.map((m, i) => `<option value="${i}" ${+s.m === i ? 'selected' : ''}>${esc(m.name)}</option>`).join('')}</select>`;
   if(s.t === 'comm') return `<select data-s="p">${draft.comms.map((c, i) => c.type === 'seq' ? '' : `<option value="${i}" ${+s.c === i ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>`;
-  if(s.t === 'say') return `<input data-s="p" value="${esc(s.text || '')}" maxlength="400" placeholder="Testo da leggere">`;
+  if(s.t === 'msg') return `<input data-s="p" value="${esc(s.text || '')}" maxlength="600" placeholder="Testo che compare sul tablet dello speaker">`;
   if(s.t === 'wait') return `<input data-s="p" type="number" min="1" max="600" value="${+s.s || 5}">`;
   return `<span class="note">Abbassa piano la musica e la mette in pausa</span>`;
 }
@@ -1501,7 +1463,7 @@ function readStep(row){
   const t = row.querySelector('[data-s="t"]').value, p = row.querySelector('[data-s="p"]'), v = p ? p.value : '';
   if(t === 'moment') return {t, m:Math.max(0, +v || 0)};
   if(t === 'comm') return {t, c:Math.max(0, +v || 0)};
-  if(t === 'say') return {t, text:/^\d+$/.test(v) ? '' : v.trim()};
+  if(t === 'msg') return {t, text:/^\d+$/.test(v) ? '' : v.trim()};
   if(t === 'wait') return {t, s:Math.max(1, +v || 5)};
   return {t};
 }
@@ -1528,9 +1490,6 @@ function collect(){
     list[+i][f] = f === 'rep' ? (+el.value || 1) : f === 'shuffle' ? !!el.value : el.value.trim();
   });
   document.querySelectorAll('#dlg [data-steps]').forEach(box => { stepsList(box.dataset.steps).steps = [...box.querySelectorAll('.step')].map(readStep); });
-  draft.voice = $('setVoice').value; draft.rate = +$('setRate').value || 0.95; draft.chime = !!$('setChime').value;
-  draft.fade = Math.max(0, Math.min(5, +$('setFade').value || 0));
-  draft.duck = Math.max(0, Math.min(80, Math.round(+$('setDuck').value || 0)));
   draft.clientId = $('setClient').value.trim();
   draft.deviceName = $('setDevice').value;
 }
@@ -1540,14 +1499,14 @@ function applyDraft(){
   const doneKeys = done.map(i => cfg.cues[i] && cfg.cues[i].time + '|' + cfg.cues[i].name);
   draft.cues.sort((a, b) => String(a.time).localeCompare(String(b.time)));
   done = draft.cues.map((c, i) => doneKeys.includes(c.time + '|' + c.name) ? i : -1).filter(i => i >= 0); saveDone();
-  cfg = draft; store(); $('oDuck').textContent = cfg.duck; placeDuck(); pickDev(); buildPads(); render(); loadPlaylists();
+  cfg = draft; store(); pickDev(); buildPads(); render(); loadPlaylists();
   if(bad.length) toast('Link non riconosciuto per: ' + bad.join(', '), 7000);
 }
 function applyLink(){
   const code = $('setCode').value.trim().toLowerCase();
   if(code && !/^[a-z0-9]{8,40}$/.test(code)){ toast('Il codice deve avere da 8 a 40 lettere o numeri, senza spazi'); return false; }
   const changed = code !== link.code || $('setRole').value !== link.role;
-  link.role = $('setRole').value; link.code = code; link.remoteVoice = !!$('setRemote').value;
+  link.role = $('setRole').value; link.code = code; link.remoteVoice = false;
   saveLink(); applyRole();
   if(changed) relayConnect();
   return true;
