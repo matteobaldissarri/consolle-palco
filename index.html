@@ -243,6 +243,9 @@ body.palco .bottom{grid-template-columns:1fr}
 .clkdig .sep{color:var(--teal);opacity:.8;margin:0 -.02em}
 .clkdate{position:absolute;left:14px;top:10px;font-family:var(--cond);font-weight:600;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
 .clockpanel{padding:8px}
+.clksync{letter-spacing:.08em}
+.clksync.ok{color:var(--teal-d)}
+.clksync.warn{color:var(--amber)}
 #clkS{color:var(--teal);text-shadow:0 0 .25em rgba(0,245,208,.35)}
 .secbar{width:88%;height:6px;flex:none;background:#161b1d;border-radius:99px;overflow:hidden}
 .secbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--teal-d),var(--teal));border-radius:99px}
@@ -418,7 +421,7 @@ body.palco .bottom{grid-template-columns:1fr}
     <!-- OROLOGIO DA STUDIO -->
     <section class="panel clockpanel">
       <div class="studio">
-        <span class="clkdate" id="clkDate"></span>
+        <span class="clkdate"><span id="clkDate"></span> · <span id="clkSync" class="clksync">sincronizzazione…</span></span>
         <div class="clkdig"><span id="clkHM">--:--</span><span class="sep">:</span><span id="clkS">--</span></div>
         <div class="secbar" aria-hidden="true"><i id="secBar"></i></div>
         <div class="clknext" id="clkNext"><small>Prossimo</small><b id="clkNextName">—</b><span id="clkCount"></span></div>
@@ -976,7 +979,7 @@ function goCue(i){
   render(); fillCueList();
 }
 function setNextCue(i){ done = Array.from({length:i}, (_, k) => k); saveDone(); render(); fillCueList(); }
-const etaMin = t => { const [h, m] = String(t).split(':').map(Number); const n = new Date(); return (h*60 + m) - (n.getHours()*60 + n.getMinutes()); };
+const etaMin = t => { const [h, m] = String(t).split(':').map(Number); const n = new Date(typeof nowMs === 'function' ? nowMs() : Date.now()); return (h*60 + m) - (n.getHours()*60 + n.getMinutes()); };
 const fmtMin = m => m >= 60 ? `${Math.floor(m/60)} h` + (m % 60 ? ` ${m % 60} min` : '') : `${m} min`;
 function renderCues(){
   const n = nextCue(), c = cfg.cues[n];
@@ -1022,7 +1025,11 @@ function loadLink(){
   if(m){
     l.role = m[1].toLowerCase(); l.code = m[2].toLowerCase();
     l.tappa = (new URLSearchParams(location.search).get('tappa') || '').slice(0, 60);
-    try{ sessionStorage.setItem(LINK_KEY, JSON.stringify({role:l.role, code:l.code, tappa:l.tappa})); }catch(e){}
+    try{
+      sessionStorage.setItem(LINK_KEY, JSON.stringify({role:l.role, code:l.code, tappa:l.tappa}));
+      // salvato anche in modo permanente: aperta dall'icona della schermata Home (che non ha il codice) la consolle resta collegata alla tappa
+      localStorage.setItem(LINK_KEY, JSON.stringify(l));
+    }catch(e){}
   }
   return l;
 }
@@ -1380,9 +1387,40 @@ requestAnimationFrame(frame);
 
 /* ---------- orologio da studio: 60 secondi in cerchio, ora grande, conto alla rovescia ---------- */
 const p2 = n => String(n).padStart(2, '0');
+
+/* ora esatta da internet: l'intestazione «Date» del server (precisa al secondo) letta più volte;
+   ogni lettura dice in che secondo eravamo → incrociando le letture lo scarto si stringe a pochi decimi */
+const CLK = {offset:0, sync:false, at:0, err:null};
+const nowMs = () => Date.now() + CLK.offset;
+async function syncClock(){
+  let lo = -Infinity, hi = Infinity, n = 0;
+  for(let k = 0; k < 8; k++){
+    try{
+      const t0 = Date.now();
+      const r = await fetch(redirectUri() + '?ora=' + t0, {method:'HEAD', cache:'no-store'});
+      const t1 = Date.now(), h = r.headers.get('Date');
+      if(!h || t1 - t0 > 1500) continue;
+      const S = Date.parse(h); if(isNaN(S)) continue;
+      // l'ora vera, nel momento in cui il server ha risposto, era tra S e S+1000; quel momento sta tra t0 e t1
+      lo = Math.max(lo, S - t1); hi = Math.min(hi, S + 1000 - t0); n++;
+    }catch(e){}
+    await sleep(130 + k*37);   // letture sfalsate dentro il secondo
+  }
+  if(n >= 2 && hi >= lo){ CLK.offset = Math.round((lo + hi)/2); CLK.err = Math.round((hi - lo)/2); CLK.sync = true; CLK.at = Date.now(); }
+  else if(n >= 1 && isFinite(lo) && isFinite(hi)){ CLK.offset = Math.round((lo + hi)/2); CLK.err = 500; CLK.sync = true; CLK.at = Date.now(); }
+  else CLK.sync = false;
+  clkLast = -1; showClockSync();
+}
+function showClockSync(){
+  const el = $('clkSync'); if(!el) return;
+  if(!CLK.sync){ el.textContent = 'ora del dispositivo · non sincronizzata'; el.className = 'clksync warn'; return; }
+  const sec = Math.abs(CLK.offset)/1000;
+  el.textContent = 'ora sincronizzata' + (sec >= 1 ? ` · il dispositivo è ${CLK.offset > 0 ? 'indietro' : 'avanti'} di ${sec.toFixed(1).replace('.', ',')} s` : '');
+  el.className = 'clksync ok';
+}
 let clkLast = -1;
 function clockTick(){
-  const d = new Date(), s = d.getSeconds();
+  const d = new Date(nowMs()), s = d.getSeconds();
   $('secBar').style.width = ((s + d.getMilliseconds()/1000)/60*100).toFixed(2) + '%';   // barra dei secondi del minuto
   if(s === clkLast) return;
   clkLast = s;
@@ -1402,6 +1440,8 @@ function clockTick(){
   if(s === 0) renderCues();
 }
 setInterval(clockTick, 200); clockTick();
+syncClock(); setInterval(syncClock, 20*60*1000);   // e di nuovo ogni 20 minuti
+addEventListener('online', syncClock);
 
 /* ---------- eventi ---------- */
 $('moments').addEventListener('click', e => { const b = e.target.closest('[data-m]'); if(b) startMoment(+b.dataset.m); });
