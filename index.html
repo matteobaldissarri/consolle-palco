@@ -196,41 +196,57 @@ textarea:focus,input:focus,select:focus{outline:2px solid var(--teal-d);outline-
 .deck{grid-column:1;grid-row:2}
 .momentspanel{grid-column:2;grid-row:2}
 .msgpanel{display:none}
-/* Palco: messaggi | orologio; sotto Spotify | momenti */
-body.palco .main{grid-template-columns:minmax(300px,.62fr) minmax(0,1fr)}
+/* Palco: orologio a tutta larghezza; sotto messaggi | (Spotify + momenti) */
+body.palco .main{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);grid-template-rows:minmax(0,1.7fr) auto minmax(0,1fr)}
 body.palco .msgtext{font-size:clamp(20px,2vw,30px)}
-body.palco .msgpanel{display:flex;grid-column:1;grid-row:1}
-body.palco .clockpanel{grid-column:2;grid-row:1}
+body.palco .clockpanel{grid-column:1 / -1;grid-row:1}
+body.palco .msgpanel{display:flex;grid-column:1;grid-row:2 / 4}
+body.palco .deck{grid-column:2;grid-row:2}
+body.palco .momentspanel{grid-column:2;grid-row:3}
+body.palco .momentspanel .moments{grid-template-columns:repeat(3,minmax(0,1fr))}
+body.palco .msgcard{padding:10px 14px;gap:8px}
+body.palco .msgbtns .tbtn{height:44px}
+body.palco .msglist{display:none}
 body.palco .cuebar, body.palco #btnSpk{display:none}
 body.palco .app{grid-template-rows:auto 1fr auto}
 body.palco .bottom{grid-template-columns:1fr}
-/* lettore compatto, senza analizzatore */
-.deck{gap:8px;padding:12px}
+/* lettore compatto su una riga: schermo | Play / Avanti */
+.deck{display:grid;grid-template-columns:minmax(0,1fr) 92px;grid-template-rows:auto;gap:8px;padding:8px}
+.deck > .ph, .momentspanel > .ph{display:none}
+.deck .transport{flex-direction:column;gap:6px}
+.deck .tbtn{flex:1;height:auto;min-height:30px;font-size:12px;box-shadow:0 2px 0 #000}
+.momentspanel{padding:8px}
+.momentspanel .pad{min-height:0 !important}
 .deck .spectrum{display:none}
 .deck .screen{padding:8px;gap:10px}
 .deck .cover{width:48px;height:48px;font-size:20px}
 .deck .meta .tt{font-size:16px}
 .deck .meta .ar,.deck .meta .pl{font-size:12px}
 .deck .meta .prog{margin-top:5px}
-.deck .tbtn{height:40px;font-size:13px}
-.deck .tbtn svg{width:18px;height:18px}
+.deck .meta .ar, .deck .meta .times{display:none}
+.deck .screen{padding:6px 8px}
+.app{gap:8px}
+.deck .tbtn svg{width:16px;height:16px}
 /* tasti playlist in riga, piccoli */
 .momentspanel .moments{grid-template-columns:repeat(6,minmax(0,1fr));grid-auto-rows:1fr;gap:8px}
-.momentspanel .pad{padding:8px 10px 8px 14px;border-radius:9px;gap:4px;min-height:64px}
+.momentspanel .pad{padding:6px 10px 6px 14px;border-radius:9px;gap:2px}
 .momentspanel .pad .n{font-size:16px;line-height:1.1;padding-right:12px}
 .momentspanel .pad .s{font-size:11px}
 .momentspanel .pad .k{top:6px;right:8px;font-size:11px}
 .big.spkbig{border:2px solid var(--amber);background:linear-gradient(180deg,#2a2210,#171309);color:var(--amber)}
 /* orologio da studio */
-.studio{flex:1;min-height:0;container-type:size;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4cqh;background:#030404;border:1px solid #1d2326;border-radius:12px}
-.clkdig{display:flex;align-items:baseline;font-family:var(--cond);font-weight:700;font-variant-numeric:tabular-nums;line-height:.82;font-size:min(27cqw,72cqh);letter-spacing:-.005em;white-space:nowrap}
+.studio{flex:1;min-height:0;container-type:size;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2cqh;background:#030404;border:1px solid #1d2326;border-radius:12px;overflow:hidden}
+/* cifre alte circa metà schermo: limite dato dall'altezza della finestra (70vh ≈ cifre al 50%), dalla larghezza e dallo spazio disponibile */
+.clkdig{display:flex;align-items:baseline;font-family:var(--cond);font-weight:700;font-variant-numeric:tabular-nums;line-height:.78;font-size:min(calc((100cqw - 24px)/3.16), 70vh, 113cqh);letter-spacing:-.03em;white-space:nowrap}
 #clkHM{color:var(--text)}
-.clkdig .sep{color:var(--teal);opacity:.8;margin:0 .02em}
+.clkdig .sep{color:var(--teal);opacity:.8;margin:0 -.02em}
+.clkdate{position:absolute;left:14px;top:10px;font-family:var(--cond);font-weight:600;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.clockpanel{padding:8px}
 #clkS{color:var(--teal);text-shadow:0 0 .25em rgba(0,245,208,.35)}
-.secbar{width:88%;height:max(6px,1.6cqh);background:#161b1d;border-radius:99px;overflow:hidden}
+.secbar{width:88%;height:6px;flex:none;background:#161b1d;border-radius:99px;overflow:hidden}
 .secbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--teal-d),var(--teal));border-radius:99px}
 .studio{position:relative}
-.clknext{position:absolute;right:14px;bottom:10px;display:flex;align-items:baseline;gap:8px;font-family:var(--cond);font-size:14px;color:var(--muted);white-space:nowrap;max-width:60%;overflow:hidden}
+.clknext{width:88%;flex:none;display:flex;justify-content:flex-end;align-items:baseline;gap:8px;font-family:var(--cond);font-size:14px;line-height:1;color:var(--muted);white-space:nowrap;overflow:hidden;margin-top:-1cqh}
 .clknext small{font-weight:600;font-size:11px;letter-spacing:.16em;text-transform:uppercase}
 .clknext b{font-weight:600;color:var(--silver);overflow:hidden;text-overflow:ellipsis}
 #clkCount{font-weight:700;font-size:16px;color:var(--teal-d);font-variant-numeric:tabular-nums}
@@ -311,11 +327,6 @@ body.palco .bottom{grid-template-columns:1fr}
   .main{grid-template-columns:260px 1fr}
   .clockpanel{min-height:340px}
   .momentspanel .moments{grid-template-columns:repeat(3,minmax(0,1fr))}
-  body.palco .main{grid-template-columns:1fr 1fr}
-  body.palco .msgpanel{grid-column:1;grid-row:1}
-  body.palco .clockpanel{grid-column:2;grid-row:1}
-  body.palco .deck{grid-column:1;grid-row:2}
-  body.palco .momentspanel{grid-column:2;grid-row:2}
   .chip{max-width:260px}
 }
 @media (max-width:640px){
@@ -400,8 +411,8 @@ body.palco .bottom{grid-template-columns:1fr}
 
     <!-- OROLOGIO DA STUDIO -->
     <section class="panel clockpanel">
-      <div class="ph"><span>Orologio</span><em id="clkDate"></em></div>
       <div class="studio">
+        <span class="clkdate" id="clkDate"></span>
         <div class="clkdig"><span id="clkHM">--:--</span><span class="sep">:</span><span id="clkS">--</span></div>
         <div class="secbar" aria-hidden="true"><i id="secBar"></i></div>
         <div class="clknext" id="clkNext"><small>Prossimo</small><b id="clkNextName">—</b><span id="clkCount"></span></div>
