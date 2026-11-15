@@ -215,6 +215,9 @@ body.palco .main{grid-template-columns:1.5fr 1fr 1fr 190px}
 .msglist button b{color:var(--silver);font-family:var(--cond);margin-right:6px}
 .msglist button.unread{color:var(--amber)}
 .app.alert{box-shadow:inset 0 0 0 3px var(--amber)}
+.setupbox{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border:1px solid var(--amber);border-radius:10px;background:rgba(255,176,32,.06)}
+.setupbox b{font-family:var(--cond);font-size:17px;letter-spacing:.04em;color:var(--amber)}
+.setupbox .btn{align-self:flex-start}
 .outlist{display:flex;flex-direction:column;gap:6px}
 .outlist div{display:grid;grid-template-columns:48px 70px 1fr 110px;gap:8px;align-items:center;font-size:13px;padding:6px 8px;border-radius:6px;background:#0d0f10}
 .outlist .k{font-family:var(--cond);color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-size:11px}
@@ -394,6 +397,16 @@ body.palco .main{grid-template-columns:1.5fr 1fr 1fr 190px}
   <div class="dlg">
     <header><h2>Messaggio allo speaker</h2></header>
     <div class="body">
+      <div class="setupbox" id="spkSetup" hidden>
+        <b>Collegamento con il palco non ancora creato.</b>
+        <p class="note">Premi il pulsante: questo PC diventa la Segreteria e viene creato un codice segreto. Poi apri sul tablet il link che compare qui sotto.</p>
+        <button class="btn pri" id="spkSetupBtn" type="button">Crea il collegamento</button>
+      </div>
+      <div class="setupbox" id="spkLinkBox" hidden>
+        <b>Link da aprire sul tablet del palco</b>
+        <span class="inline"><input id="spkLinkVal" readonly><button class="btn" id="spkLinkCopy" type="button">Copia</button></span>
+        <p class="note">Mandalo solo a te stesso (es. WhatsApp o email), aprilo in Chrome sul tablet e aggiungilo alla schermata Home: quella sarà la consolle Palco.</p>
+      </div>
       <p class="note">Il testo compare grande sul tablet del palco: lo speaker lo legge al microfono e conferma con «Letto». Qui sotto vedi se è arrivato e se è stato letto.</p>
       <textarea id="spkText" rows="4" maxlength="600" placeholder="Es.: Il pilota numero 112 è atteso in direzione gara."></textarea>
       <label class="note chk"><input type="checkbox" id="spkUrg"> Urgente (sul palco compare in rosso)</label>
@@ -1108,7 +1121,7 @@ setInterval(() => { if(!isPalco() && linked() && RL.ok) send('ping'); }, 10*60*1
 function applyRole(){
   document.body.classList.toggle('palco', isPalco());
   $('roleName').textContent = isPalco() ? 'PALCO' : linked() ? 'SEGRETERIA' : 'PALCO';
-  $('btnSpk').hidden = isPalco() || !linked();
+  $('btnSpk').hidden = isPalco();
   $('stLink').hidden = !linked();
   $('lblLink').textContent = isPalco() ? 'Segreteria' : 'Palco';
   renderInbox();
@@ -1364,7 +1377,20 @@ $('freeGo').onclick = () => {
   $('dlgFree').close();
   announce('Annuncio libero', t, $('freeRep').checked ? 2 : 1, -1);
 };
-$('btnSpk').onclick = () => { $('dlgSpk').showModal(); fillOutbox(); if(RL.ok) send('ping'); setTimeout(() => $('spkText').focus(), 50); };
+function newCode(){ const a = new Uint8Array(16); crypto.getRandomValues(a); return Array.from(a, x => 'abcdefghijkmnpqrstuvwxyz23456789'[x % 32]).join(''); }
+function fillSpkSetup(){
+  $('spkSetup').hidden = linked();
+  $('spkLinkBox').hidden = !linked();
+  $('spkLinkVal').value = linked() ? palcoLink(link.code) : '';
+  $('spkSend').disabled = !linked();
+}
+$('btnSpk').onclick = () => { $('dlgSpk').showModal(); fillSpkSetup(); fillOutbox(); if(RL.ok) send('ping'); setTimeout(() => $('spkText').focus(), 50); };
+$('spkSetupBtn').onclick = () => {
+  link.role = 'segreteria'; link.code = newCode(); saveLink(); applyRole(); relayConnect();
+  fillSpkSetup(); fillOutbox(); render();
+  toast('Collegamento creato: ora apri il link sul tablet del palco', 7000);
+};
+$('spkLinkCopy').onclick = async () => { try{ await navigator.clipboard.writeText($('spkLinkVal').value); toast('Link copiato'); }catch(e){ $('spkLinkVal').select(); } };
 $('spkClose').onclick = () => $('dlgSpk').close();
 $('spkSend').onclick = sendToSpeaker;
 $('msgRead').onclick = markRead;
@@ -1526,11 +1552,7 @@ function applyLink(){
   if(changed) relayConnect();
   return true;
 }
-$('btnGen').onclick = () => {
-  const a = new Uint8Array(16); crypto.getRandomValues(a);
-  const c = Array.from(a, x => 'abcdefghijkmnpqrstuvwxyz23456789'[x % 32]).join('');
-  $('setCode').value = c; $('setPalcoLink').value = palcoLink(c);
-};
+$('btnGen').onclick = () => { const c = newCode(); $('setCode').value = c; $('setPalcoLink').value = palcoLink(c); };
 $('setCode').addEventListener('input', () => { const c = $('setCode').value.trim().toLowerCase(); $('setPalcoLink').value = /^[a-z0-9]{8,40}$/.test(c) ? palcoLink(c) : ''; });
 $('btnCopyLink').onclick = async () => { try{ await navigator.clipboard.writeText($('setPalcoLink').value); toast('Link copiato: aprilo sul tablet del palco'); }catch(e){ $('setPalcoLink').select(); } };
 $('btnSave').onclick = () => { collect(); if(!applyLink()) return; applyDraft(); $('dlg').close(); poll(); };
